@@ -1,0 +1,267 @@
+{
+  "info": {
+    "name": "Azure Functions VM Management - Producción",
+    "description": "Colección completa para probar la API de gestión de VMs en Azure Functions - Ambiente de Producción",
+    "version": "3.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://vm-az-functions-demo.azurewebsites.net",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "pGfZb--H1Svjo_1x5cjcbfssPEAuHflwk_DQEaIzvMk",
+      "type": "string"
+    },
+    {
+      "key": "test_vm_name",
+      "value": "postman-test-vm",
+      "type": "string"
+    },
+    {
+      "key": "created_vm_name",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has status field', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "});",
+              "",
+              "pm.test('System is healthy', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql('healthy');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Verificar el estado de salud del sistema"
+      },
+      "response": []
+    },
+    {
+      "name": "📋 List VMs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has vms array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('vms');",
+              "    pm.expect(jsonData.vms).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/vms",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vms"]
+        },
+        "description": "Listar todas las VMs"
+      },
+      "response": []
+    },
+    {
+      "name": "🆕 Create VM",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('VM created successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('vm_name');",
+              "    pm.expect(jsonData).to.have.property('public_ip');",
+              "    pm.expect(jsonData).to.have.property('ssh_private_key');",
+              "    pm.collectionVariables.set('created_vm_name', jsonData.vm_name);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{test_vm_name}}-{{$randomInt}}\",\n  \"size\": \"medium\",\n  \"region\": \"eastus\",\n  \"tags\": {\n    \"Environment\": \"Testing\",\n    \"CreatedBy\": \"Postman\",\n    \"Purpose\": \"API Testing\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/vms",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vms"]
+        },
+        "description": "Crear una nueva VM"
+      },
+      "response": []
+    },
+    {
+      "name": "🔍 Get VM Details",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has VM details', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('name');",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/vms/{{created_vm_name}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vms", "{{created_vm_name}}"]
+        },
+        "description": "Obtener detalles de una VM específica"
+      },
+      "response": []
+    },
+    {
+      "name": "🔑 Get SSH Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has SSH keys', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('ssh_private_key');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/ssh-keys/{{created_vm_name}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "ssh-keys", "{{created_vm_name}}"]
+        },
+        "description": "Obtener las claves SSH de una VM"
+      },
+      "response": []
+    },
+    {
+      "name": "🗑️ Delete VM",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('VM deleted successfully', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('deleted successfully');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/vms/{{created_vm_name}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vms", "{{created_vm_name}}"]
+        },
+        "description": "Eliminar la VM de prueba"
+      },
+      "response": []
+    }
+  ]
+}
